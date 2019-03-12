@@ -1,10 +1,22 @@
 /**
+ * @Author: Steven Welch <steven>
+ * @Date:   2019-03-12T14:07:49-06:00
+ * @Email:  WelchSteven@gmail.com
+ * @Filename: Arduino.h
+ * @Last modified by:   steven
+ * @Last modified time: 2019-03-12T14:08:20-06:00
+ */
+
+
+
+/**
  * Arduino mock header
  */
 #ifndef ARDUINO_H
 #define ARDUINO_H
 
 #include <stdint.h>
+#include <gmock/gmock.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,7 +83,7 @@ void loop(void);
 } // extern "C"
 #endif
 
-#include <gmock/gmock.h>
+
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define F(x) (x)

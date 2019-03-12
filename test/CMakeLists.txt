@@ -6,9 +6,8 @@ add_executable(test_all test_all.cc)
 
 target_link_libraries(test_all
     arduino_mock
-    ${GTEST_LIBS_DIR}/libgtest.a
-    ${GTEST_LIBS_DIR}/libgtest_main.a
-    ${GMOCK_LIBS_DIR}/libgmock.a
+    ${GTEST_BOTH_LIBRARIES}
+    gmock
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
