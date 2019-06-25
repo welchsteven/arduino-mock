@@ -1,51 +1,52 @@
-cmake_minimum_required (VERSION 2.8.8)
+cmake_minimum_required (VERSION 2.6)
 project (arduino_mock)
 
-find_package(Threads REQUIRED)
-find_package(gtest REQUIRED)
-#add_subdirectory(lib/gtest)
-#add_subdirectory(lib/gmock)
-
-cmake_policy(SET CMP0048 NEW)
-#project(gtest VERSION ${GOOGLETEST_VERSION} LANGUAGES CXX C)
-if (POLICY CMP0063) # Visibility
-  cmake_policy(SET CMP0063 NEW)
-endif (POLICY CMP0063)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Download and unpack googletest at configure time
+configure_file(CMakeLists.txt.gtest googletest-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+  RESULT_VARIABLE result
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+if(result)
+  message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+  RESULT_VARIABLE result
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+if(result)
+  message(FATAL_ERROR "Build step for googletest failed: ${result}")
+endif()
 
-message ("building arduino_mock")
-message("Gtest include: ${GTEST_INCLUDE_DIRS}")
+# Prevent overriding the parent project's compiler/linker
+# settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-include_directories(${GTEST_INCLUDE_DIRS}  include)
-include_directories(SYSTEM)
-LINK_DIRECTORIES(/usr/local/lib)
+# Add googletest directly to our build. This defines
+# the gtest and gtest_main targets.
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
+                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
+                 EXCLUDE_FROM_ALL)
 
-file(GLOB SRC
-    "src/ArduinoMockAll.cc"
-)
+# The gtest/gtest_main targets carry header search path
+# dependencies automatically when using CMake 2.8.11 or
+# later. Otherwise we have to add them here ourselves.
+if (CMAKE_VERSION VERSION_LESS 2.8.11)
+  include_directories("${gtest_SOURCE_DIR}/include")
+endif()
 
-add_library(arduino_mock STATIC ${SRC})
+add_library(arduino_mock STATIC src/ArduinoMockAll.cc)
 
 target_include_directories(arduino_mock
-    PUBLIC "include"
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 target_link_libraries(arduino_mock
-    ${GTEST_BOTH_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
+    gmock_main
 )
-
-set_target_properties( arduino_mock
-  PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/bin"
-)
-
-add_dependencies(arduino_mock gtest gmock)
 
 option(test "Build all tests." OFF)
 
